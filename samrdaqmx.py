@@ -61,12 +61,13 @@ task_ch0_in_sampling_rate = 1*ac_nSamples
 task_ch1_out_sampling_rate = 2*dc_nSamples
 task_ch1_in_sampling_rate = 1*dc_nSamples
 
-# tasks to be run by the aquisition card
+# tasks to be run by the acquisition card
 task_ch0_in = nidaqmx.Task() 
 task_ch1_in = nidaqmx.Task()
 #task_ch0_out = nidaqmx.Task()
 #task_ch1_out = nidaqmx.Task()
 
+# channel names
 ch0_in_name = "Dev1/ai0"
 ch1_in_name = "Dev1/ai1"
 ch0_out_name = "Dev1/ao0"
@@ -162,7 +163,7 @@ plot_ac_clear_btn_ax = plt.axes([0.01, 0.26, 0.06, 0.03], frameon=True)
 plot_ac_clear_btn = Button(plot_ac_clear_btn_ax, 'AC clear', color='0.85', hovercolor='0.95')
 plot_ac_clear_btn.on_clicked(gen_ac_clear)
 
-# terminate program breaks while aqusition loop
+# terminate program breaks while acquisition loop
 exit_btn_ax = plt.axes([0.01, 0.22, 0.06, 0.03], frameon=True)
 exit_btn = Button(exit_btn_ax, 'Exit', color='0.85', hovercolor='0.95')
 exit_btn.on_clicked(exit_program)
@@ -170,7 +171,7 @@ exit_btn.on_clicked(exit_program)
 # turn on interactive mode for plots
 plt.ion()
 
-""" main aquisition loop to read data and update plots """
+""" main acquisition loop to read data and update plots """
 aq_start = True
 while aq_start == True:
 
@@ -199,6 +200,6 @@ while aq_start == True:
 	time.sleep(.01)
 	plt.show()
 
-# free NI cards' recources on exit
+# free NI cards' resources on exit
 task_ch0_in.close()
 task_ch1_in.close()
