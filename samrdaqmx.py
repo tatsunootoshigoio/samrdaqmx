@@ -46,10 +46,16 @@ ac_sig = ac_a0*np.sin(2*np.pi*ac_fs*ac_t0)
 #dc_pulse = np.concatenate([rise_1V, stay_1V, fall_1V])
 
 # dc square pulse train = DC voltage 
+#dc_nSamples = 10000 # samples
+#dc_fs = 34 #Hz
+#dc_t0 = np.linspace(0, dc_nSamples, num=dc_nSamples) # time series
+#dc_sig = signal.square(2*np.pi*dc_fs*dc_t0, duty=0.5)
+
+# dc square pulse train = DC voltage (baseline adjusted) 
 dc_nSamples = 10000 # samples
 dc_fs = 34 #Hz
 dc_t0 = np.linspace(0, dc_nSamples, num=dc_nSamples) # time series
-dc_sig = signal.square(2*np.pi*dc_fs*dc_t0, duty=0.5)
+dc_sig = 0.5*(signal.square(2*np.pi*dc_fs*dc_t0, duty=0.5) + 1.0)
 
 # samples to read for ac_gen_volt ac_signal (size of buffer allocation)
 ac_gen_volt_samples_per_chan_no = 10*ac_nSamples
@@ -94,6 +100,7 @@ plt.tight_layout()
 ac_gen_xy = fig.add_subplot(spec[0, 0])
 ac_gen_xy_fft = fig.add_subplot(spec[1, 0])
 #dc_gen_xy = fig.add_subplot(spec[0, 1])
+
 # DataFrames to collect samples
 ac_df = pd.DataFrame()
 ac_df_fft = pd.DataFrame()
