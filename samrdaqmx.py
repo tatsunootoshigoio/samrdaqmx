@@ -4,8 +4,6 @@
 #------------------------------------------------------#
 
 import nidaqmx
-#from pynput import keyboard
-#from pynput.keyboard import Key, KeyCode, Listener, Controller
 from nidaqmx.constants import AcquisitionType, FuncGenType
 from matplotlib.widgets import CheckButtons, Button
 import numpy as np
@@ -28,6 +26,7 @@ print('DAQmx Driver Version:{0}.{1}.{2}'.format(nidaqmx_sys.driver_version.major
 for device in nidaqmx_sys.devices:
     print('Device Name: {0}, Product Category: {1}, Product Type: {2}'.format(device.name, device.product_category, device.product_type))
 
+""" AC sine wave parameters """
 # sine fucntion parameters = AC voltage
 ac_nSamples = 10000 # samples
 ac_fs = 63 #Hz
@@ -37,6 +36,7 @@ ac_sig = ac_a0*np.sin(2*np.pi*ac_fs*ac_t0)
 
 # dc pulse parameter = DC voltage
 
+# not really working with the card but let's leave it for the time being
 #task_ch1_out.write([1.1, 1.1, 1.1, 1.1, 1.1, 1.1], auto_start=True)
 # terrible spike up to 3.5V if num=1001 or less for 1V
 #rise_1V = np.linspace(0.0, 1.0, num=2000)
@@ -51,13 +51,28 @@ ac_sig = ac_a0*np.sin(2*np.pi*ac_fs*ac_t0)
 #dc_t0 = np.linspace(0, dc_nSamples, num=dc_nSamples) # time series
 #dc_sig = signal.square(2*np.pi*dc_fs*dc_t0, duty=0.5)
 
+""" DC pulse train parameters """
 # dc square pulse train = DC voltage (baseline adjusted) 
 dc_nSamples = 10000 # samples
 dc_fs = 34 #Hz
 dc_t0 = np.linspace(0, dc_nSamples, num=dc_nSamples) # time series
 dc_sig = 0.5*(signal.square(2*np.pi*dc_fs*dc_t0, duty=0.5) + 1.0)
 
-# samples to read for ac_gen_volt ac_signal (size of buffer allocation)
+""" voltage channels names"""
+# output channel names (writer)
+ch0_out_name = "Dev1/ao0"
+ch1_out_name = "Dev1/ao1"
+
+# output channel names (reader)
+ch0_in_name = "Dev1/ai0"
+ch1_in_name = "Dev1/ai1"
+
+
+# multiple reader channels (to be explored...)
+ch01_in_name = "Dev/ai0:1" 
+
+""" buffer size allocation """
+# samples to read for ac_gen_volt,  ac_signal and dc_gen_volt, dc_signal (buffer size allocation)
 ac_gen_volt_samples_per_chan_no = 10*ac_nSamples
 dc_gen_volt_samples_per_chan_no = 10*dc_nSamples
 
@@ -67,20 +82,13 @@ task_ch0_in_sampling_rate = 1*ac_nSamples
 task_ch1_out_sampling_rate = 2*dc_nSamples
 task_ch1_in_sampling_rate = 1*dc_nSamples
 
-# tasks to be run by the acquisition card
+# read tasks to be run by the acquisition card
 task_ch0_in = nidaqmx.Task() 
 task_ch1_in = nidaqmx.Task()
+
+# moved somewhere else
 #task_ch0_out = nidaqmx.Task()
 #task_ch1_out = nidaqmx.Task()
-
-# channel names
-ch0_in_name = "Dev1/ai0"
-ch1_in_name = "Dev1/ai1"
-ch0_out_name = "Dev1/ao0"
-ch1_out_name = "Dev1/ao1"
-
-# multiple channels
-ch01_in_name = "Dev/ai0:1" 
 
 # input output channels on the card (consult piount)
 ch0_in = task_ch0_in.ai_channels.add_ai_voltage_chan(ch0_in_name)
@@ -97,6 +105,7 @@ fig = plt.figure(figsize=(16,8), dpi=80)
 spec = gridspec.GridSpec(ncols=1, nrows=2, figure=fig)
 plt.tight_layout()
 #plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
+
 ac_gen_xy = fig.add_subplot(spec[0, 0])
 ac_gen_xy_fft = fig.add_subplot(spec[1, 0])
 #dc_gen_xy = fig.add_subplot(spec[0, 1])
