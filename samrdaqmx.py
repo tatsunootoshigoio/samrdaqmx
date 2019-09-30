@@ -56,7 +56,7 @@ ac_sig = ac_a0*np.sin(2*np.pi*ac_fs*ac_t0)
 dc_nSamples = 10000 # samples
 dc_fs = 34 #Hz
 dc_t0 = np.linspace(0, dc_nSamples, num=dc_nSamples) # time series
-dc_sig = 0.5*(signal.square(2*np.pi*dc_fs*dc_t0, duty=0.5) + 1.0)
+dc_sig = -1.0*(signal.square(2*np.pi*dc_fs*dc_t0, duty=0.7) + 0.0)
 
 """ voltage channels names"""
 # output channel names (writer)
@@ -193,7 +193,7 @@ while aq_start == True:
 
 	# reads AC from ch0_out
 	acvolt_in = task_ch0_in.read(number_of_samples_per_channel=ac_nSamples)
-	time.sleep(1)
+	#time.sleep(1)
 	actime_in = ac_t0
 	ac_data_row = pd.Series(acvolt_in, actime_in)
 	
@@ -212,7 +212,7 @@ while aq_start == True:
 	ac_df_fft = np.fft.fft(ac_df)
 	ac_gen_xy_fft.plot(ac_df_fft, color='g', linewidth=1.0)
 	
-	plt.pause(0.0001)
+	plt.pause(0.001)
 	time.sleep(.01)
 	plt.show()
 
