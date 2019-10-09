@@ -54,9 +54,10 @@ ac_sig = ac_a0*np.sin(2*np.pi*ac_fs*ac_t0)
 """ DC pulse train parameters """
 # dc square pulse train = DC voltage (baseline adjusted) 
 dc_nSamples = 10000 # samples
-dc_fs = 34 #Hz
-dc_t0 = np.linspace(0, dc_nSamples, num=dc_nSamples) # time series
-dc_sig = -1.0*(signal.square(2*np.pi*dc_fs*dc_t0, duty=0.7) + 0.0)
+#dc_fs = 34 #Hz
+#dc_t0 = np.linspace(0, dc_nSamples, num=dc_nSamples) # time series
+#dc_sig = 0.5*(signal.square(2*np.pi*dc_fs*dc_t0, duty=0.9) + 0.0)
+dc_sig = np.linspace(0.0, 2.0, num=dc_nSamples)
 
 """ voltage channels names"""
 # output channel names (writer)
@@ -114,33 +115,46 @@ ac_gen_xy_fft = fig.add_subplot(spec[1, 0])
 ac_df = pd.DataFrame()
 ac_df_fft = pd.DataFrame()
 
+acvolt_in = np.zeros(ac_nSamples)
 # defining button events for the plot
 def gen_ac_start(event):
-	#print(CheckButtons.get_status(chk_btn))
-	print('Plotting selected AC datasets...')
-	task_ch0_out = nidaqmx.Task()
-	ch0_out = task_ch0_out.ao_channels.add_ao_voltage_chan(ch0_out_name)
-	task_ch0_out.timing.cfg_samp_clk_timing(rate=task_ch0_out_sampling_rate, sample_mode= AcquisitionType.FINITE, samps_per_chan=ac_gen_volt_samples_per_chan_no)
+	# print(CheckButtons.get_status(chk_btn))
+	
+	#task_ch0_out = nidaqmx.Task()
+	with nidaqmx.Task() as task_ch0_out:
+		ch0_out = task_ch0_out.ao_channels.add_ao_voltage_chan(ch0_out_name)
+	#task_ch0_out.timing.cfg_samp_clk_timing(rate=task_ch0_out_sampling_rate, sample_mode= AcquisitionType.FINITE, samps_per_chan=ac_gen_volt_samples_per_chan_no)
+		for i in range (0, 2):
+			print('Plotting selected AC datasets no: ' + np.str(i))
+			task_ch0_out.write(ac_sig, auto_start=True)
+		#task_ch0_out.wait_until_done()
+			task_ch0_out.stop()
 
-	task_ch0_out.write(ac_sig, auto_start=True)
-	task_ch0_out.wait_until_done()
-	task_ch0_out.stop()
-	task_ch0_out.close()
-	#print(ac_df_fft)
+	#task_ch0_out.close()
+	# print(ac_df_fft)
 
 # defining button events for the plot
 def gen_dc_start(event):
 	#print(CheckButtons.get_status(chk_btn))
-	print('Plotting selected DC datasets...')
-	task_ch1_out = nidaqmx.Task()
-	task_ch1_out.ao_channels.add_ao_voltage_chan(ch1_out_name)
-	task_ch1_out.timing.cfg_samp_clk_timing(rate=task_ch1_out_sampling_rate, sample_mode= AcquisitionType.FINITE, samps_per_chan=dc_gen_volt_samples_per_chan_no)
+	#task_ch1_out = nidaqmx.Task()
+	with nidaqmx.Task() as task_ch1_out:
+		task_ch1_out.ao_channels.add_ao_voltage_chan(ch1_out_name)
+	#task_ch1_out.timing.cfg_samp_clk_timing(rate=task_ch1_out_sampling_rate, sample_mode= AcquisitionType.FINITE, samps_per_chan=dc_gen_volt_samples_per_chan_no)
 	
-	print(dc_sig)
-	task_ch1_out.write(dc_sig, auto_start=True)
-	task_ch1_out.wait_until_done()
-	task_ch1_out.stop()
-	task_ch1_out.close()
+		print(dc_sig)
+	#task_ch1_out.write([1.1,0.0], auto_start=True)
+		task_ch1_out.write(dc_sig, auto_start=True)
+	#task_ch1_out.wait_until_done()
+		task_ch1_out.stop()
+	#task_ch1_out.close()
+		time.sleep(5)
+	#task_ch1_out = nidaqmx.Task()
+		print('zeroing sig...')
+		task_ch1_out.write(0.0, auto_start=True)
+	#task_ch1_out.wait_until_done()
+		task_ch1_out.stop()
+		print('stopped task...')
+	#task_ch1_out.close()
 	#print(ac_df_fft)	
 
 def gen_ac_clear(event):
@@ -149,6 +163,11 @@ def gen_ac_clear(event):
 	ac_gen_xy_fft.clear()
 
 def exit_program(event): 
+	print('Exiting program...')
+	global aq_start
+	aq_start = False;
+
+def gen_acdc_start(event): 
 	print('Exiting program...')
 	global aq_start
 	aq_start = False;
@@ -164,6 +183,11 @@ ax = plt.gca()
 #	label.set_bbox(dict(facecolor='white', edgecolor='None', alpha=0.65 ))
 
 """ plot i/o buttons """
+# gen ACDC button
+plot_acdc_btn_ax = plt.axes([0.01, 0.38, 0.06, 0.03], frameon=True)
+plot_acdc_btn = Button(plot_acdc_btn_ax, 'ACDC start', color='0.85', hovercolor='0.95')
+plot_acdc_btn.on_clicked(gen_acdc_start)
+
 # gen DC button
 plot_dc_btn_ax = plt.axes([0.01, 0.34, 0.06, 0.03], frameon=True)
 plot_dc_btn = Button(plot_dc_btn_ax, 'DC start', color='0.85', hovercolor='0.95')
@@ -192,14 +216,15 @@ aq_start = True
 while aq_start == True:
 
 	# reads AC from ch0_out
-	acvolt_in = task_ch0_in.read(number_of_samples_per_channel=ac_nSamples)
-	#time.sleep(1)
-	actime_in = ac_t0
+	# acvolt_in = task_ch0_in.read(number_of_samples_per_channel=ac_nSamples)
+	# time.sleep(1)
+	actime_in = ac_t0 
 	ac_data_row = pd.Series(acvolt_in, actime_in)
 	
 	data_row = pd.Series(acvolt_in, actime_in)
 	ac_df = data_row
-
+	acvolt_in = task_ch0_in.read(number_of_samples_per_channel=ac_nSamples)
+	
 	ac_gen_xy.clear()
 	
 	# plot the ac voltage signal

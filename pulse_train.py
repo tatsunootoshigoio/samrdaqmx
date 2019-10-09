@@ -12,7 +12,7 @@ import sys
 from scipy import signal
 
 # dc square pulse train = DC voltage 
-dc_nSamples = 10000 # samples
+dc_nSamples = 9999 # samples
 dc_fs = 34 #Hz
 dc_t0 = np.linspace(0, dc_nSamples, num=dc_nSamples) # time series
 dc_sig = 0.5*(signal.square(2*np.pi*dc_fs*dc_t0, duty=0.5) + 1.0)
